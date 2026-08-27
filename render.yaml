@@ -2,16 +2,8 @@ services:
   - type: web
     name: insurance-premium-service
     runtime: docker
-    plan: free
+    rootDir: Backend/Premium-ServiceAPI
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
     healthCheckPath: /health
-    envVars:
-      - key: ASPNETCORE_ENVIRONMENT
-        value: Production
-      - key: ConnectionStrings__PremiumDb
-        sync: false
-      - key: Jwt__Issuer
-        value: Insurance.Identity
-      - key: Jwt__Audience
-        value: Insurance.Services
-      - key: Jwt__Key
-        sync: false
+    autoDeployTrigger: commit

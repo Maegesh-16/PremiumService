@@ -1,0 +1,22 @@
+@Premium_ServiceAPI_HostAddress = http://localhost:5169
+
+### Health
+GET {{Premium_ServiceAPI_HostAddress}}/health
+
+### Development token
+POST {{Premium_ServiceAPI_HostAddress}}/api/dev-auth/token?role=Administrator
+
+### Get premium plans
+GET {{Premium_ServiceAPI_HostAddress}}/api/premium/plans
+Authorization: Bearer {{jwtToken}}
+
+### Create premium plan
+POST {{Premium_ServiceAPI_HostAddress}}/api/premium/plans
+Content-Type: application/json
+Authorization: Bearer {{jwtToken}}
+
+{
+  "policyTypeId": "11111111-1111-1111-1111-111111111111",
+  "frequency": "Monthly",
+  "basePremium": 1500.00
+}
