@@ -11,19 +11,43 @@ namespace Premium_ServiceAPI.Controllers;
 
 [ApiController]
 [Route("api/dev-auth")]
-public class DevelopmentAuthController(IOptions<JwtSettings> jwtOptions, IWebHostEnvironment environment) : ControllerBase
+public class DevelopmentAuthController(IOptions<JwtSettings> jwtSettings) : ControllerBase
 {
     [AllowAnonymous]
     [HttpPost("token")]
-    public ActionResult<object> CreateDevelopmentToken([FromQuery] string role = PremiumServiceRoles.Administrator)
+    public ActionResult<object> CreateToken([FromQuery] string role = PremiumServiceRoles.Administrator)
     {
-        if (!environment.IsDevelopment()) return NotFound();
+        var settings = jwtSettings.Value;
+        var now = DateTime.UtcNow;
 
-        var settings = jwtOptions.Value;
-        var token = new JwtSecurityToken(settings.Issuer, settings.Audience,
-            [new Claim(JwtRegisteredClaimNames.Sub, "local-swagger-tester"), new Claim(ClaimTypes.Role, role)],
-            expires: DateTime.UtcNow.AddHours(1), signingCredentials: new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(settings.SecretKey)), SecurityAlgorithms.HmacSha256));
+        var claims = new List<Claim>
+        {
+            new(JwtRegisteredClaimNames.Sub, "dev-user"),
+            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new(ClaimTypes.NameIdentifier, "dev-user"),
+            new(ClaimTypes.Name, "dev-user"),
+            new(ClaimTypes.Role, role)
+        };
 
-        return Ok(new { accessToken = new JwtSecurityTokenHandler().WriteToken(token), expiresAt = token.ValidTo, role });
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(settings.SecretKey));
+        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+        var token = new JwtSecurityToken(
+            issuer: settings.Issuer,
+            audience: settings.Audience,
+            claims: claims,
+            notBefore: now,
+            expires: now.AddHours(2),
+            signingCredentials: credentials);
+
+        var jwt = new JwtSecurityTokenHandler().WriteToken(token);
+
+        return Ok(new
+        {
+            accessToken = jwt,
+            tokenType = "Bearer",
+            expiresAtUtc = now.AddHours(2),
+            role
+        });
     }
 }

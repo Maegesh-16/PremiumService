@@ -11,6 +11,12 @@ using Premium_ServiceAPI.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var port = Environment.GetEnvironmentVariable("PORT");
+if (!string.IsNullOrWhiteSpace(port))
+{
+    builder.WebHost.UseUrls($"http://*:{port}");
+}
+
 var connectionString = builder.Configuration.GetConnectionString("PremiumServiceDb")
     ?? throw new InvalidOperationException("Connection string 'PremiumServiceDb' was not found.");
 
@@ -31,7 +37,23 @@ var app = builder.Build();
 var publicBaseUrl = builder.Configuration["AppUrls:PublicBaseUrl"]?.TrimEnd('/');
 
 app.UseForwardedHeaders();
-app.UseSwagger();
+app.UseSwagger(options =>
+{
+    options.PreSerializeFilters.Add((swagger, httpRequest) =>
+    {
+        var serverUrl = !string.IsNullOrWhiteSpace(publicBaseUrl)
+            ? publicBaseUrl
+            : $"{httpRequest.Scheme}://{httpRequest.Host.Value}";
+
+        swagger.Servers =
+        [
+            new OpenApiServer
+            {
+                Url = serverUrl
+            }
+        ];
+    });
+});
 app.UseSwaggerUI();
 
 using (var scope = app.Services.CreateScope())
@@ -48,7 +70,6 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.UseMiddleware<GlobalExceptionMiddleware>();
-app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapGet("/health", () => Results.Ok(new { status = "healthy", service = "Premium Service API" })).AllowAnonymous();

@@ -19,22 +19,26 @@ public static class AuthenticationExtensions
         }
 
         var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(settings.SecretKey));
-        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
-        {
-            options.RequireHttpsMetadata = true;
-            options.SaveToken = true;
-            options.TokenValidationParameters = new TokenValidationParameters
+
+        services
+            .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(options =>
             {
-                ValidateIssuer = settings.ValidateIssuer,
-                ValidIssuer = settings.Issuer,
-                ValidateAudience = settings.ValidateAudience,
-                ValidAudience = settings.Audience,
-                ValidateLifetime = settings.ValidateLifetime,
-                ValidateIssuerSigningKey = settings.ValidateIssuerSigningKey,
-                IssuerSigningKey = signingKey,
-                ClockSkew = TimeSpan.FromMinutes(settings.ClockSkewMinutes)
-            };
-        });
+                options.RequireHttpsMetadata = true;
+                options.SaveToken = true;
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = settings.ValidateIssuer,
+                    ValidIssuer = settings.Issuer,
+                    ValidateAudience = settings.ValidateAudience,
+                    ValidAudience = settings.Audience,
+                    ValidateLifetime = settings.ValidateLifetime,
+                    ValidateIssuerSigningKey = settings.ValidateIssuerSigningKey,
+                    IssuerSigningKey = signingKey,
+                    ValidAlgorithms = [SecurityAlgorithms.HmacSha256],
+                    ClockSkew = TimeSpan.FromMinutes(settings.ClockSkewMinutes)
+                };
+            });
 
         services.AddAuthorization(options =>
         {
@@ -44,7 +48,7 @@ public static class AuthenticationExtensions
 
         services.AddSwaggerGen(options =>
         {
-            options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme { Name = "Authorization", Type = SecuritySchemeType.Http, Scheme = "bearer", BearerFormat = "JWT", In = ParameterLocation.Header });
+            options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme { Name = "Authorization", Type = SecuritySchemeType.Http, Scheme = "bearer", BearerFormat = "JWT", In = ParameterLocation.Header, Description = "Enter JWT Bearer token. Example: Bearer {token}" });
             options.AddSecurityRequirement(new OpenApiSecurityRequirement { { new OpenApiSecurityScheme { Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" } }, Array.Empty<string>() } });
         });
 
