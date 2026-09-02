@@ -7,4 +7,5 @@ public static class PremiumServiceRoles
     public const string ClaimsOfficer = "ClaimsOfficer";
     public const string CustomerSupport = "CustomerSupport";
     public const string Administrator = "Administrator";
+    public const string PlatformAdmin = "PlatformAdmin";
 }

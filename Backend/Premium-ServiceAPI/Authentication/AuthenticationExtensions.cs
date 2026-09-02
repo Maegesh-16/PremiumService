@@ -43,7 +43,7 @@ public static class AuthenticationExtensions
         services.AddAuthorization(options =>
         {
             options.AddPolicy(PremiumServicePolicies.PremiumRead, policy => policy.RequireAuthenticatedUser().RequireRole(PremiumServiceRoles.Customer, PremiumServiceRoles.Agent, PremiumServiceRoles.ClaimsOfficer, PremiumServiceRoles.CustomerSupport, PremiumServiceRoles.Administrator));
-            options.AddPolicy(PremiumServicePolicies.PremiumManage, policy => policy.RequireAuthenticatedUser().RequireRole(PremiumServiceRoles.Agent, PremiumServiceRoles.CustomerSupport, PremiumServiceRoles.Administrator));
+            options.AddPolicy(PremiumServicePolicies.PremiumManage, policy => policy.RequireAuthenticatedUser().RequireRole(PremiumServiceRoles.Administrator, PremiumServiceRoles.PlatformAdmin));
         });
 
         services.AddSwaggerGen(options =>
