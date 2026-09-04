@@ -13,7 +13,7 @@ services:
       - key: JwtSettings__Issuer
         value: InsurancePlatform.Identity
       - key: JwtSettings__Audience
-        value: InsurancePlatform.Clients
+        value: insurancePlatform.Clients
       - key: JwtSettings__SecretKey
         sync: false
       - key: JwtSettings__ValidateIssuer
