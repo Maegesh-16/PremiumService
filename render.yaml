@@ -1,4 +1,4 @@
-services:
+statservices:
   - type: web
     name: insurance-premium-service
     runtime: docker
@@ -11,7 +11,7 @@ services:
       - key: ConnectionStrings__PremiumServiceDb
         sync: false
       - key: JwtSettings__Issuer
-        value: InsurancePlatform.Identity
+        value: InsurancePlatform.IdentityService
       - key: JwtSettings__Audience
         value: InsurancePlatform.Clients
       - key: JwtSettings__SecretKey
