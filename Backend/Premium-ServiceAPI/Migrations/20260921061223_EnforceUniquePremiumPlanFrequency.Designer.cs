@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Premium_ServiceAPI.Data;
 
@@ -11,9 +12,11 @@ using Premium_ServiceAPI.Data;
 namespace Premium_ServiceAPI.Migrations
 {
     [DbContext(typeof(PremiumDbContext))]
-    partial class PremiumDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260921061223_EnforceUniquePremiumPlanFrequency")]
+    partial class EnforceUniquePremiumPlanFrequency
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

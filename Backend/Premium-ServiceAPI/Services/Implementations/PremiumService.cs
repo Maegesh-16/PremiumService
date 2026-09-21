@@ -14,7 +14,16 @@ public class PremiumService(IPremiumRepository premiumRepository) : IPremiumServ
     public async Task<IReadOnlyList<PremiumHistoryDto>> GetHistoryAsync(Guid? policyId, CancellationToken cancellationToken = default) => (await premiumRepository.GetHistoryAsync(policyId, cancellationToken)).Select(history => history.ToDto()).ToList();
     public async Task<IReadOnlyList<PremiumDiscountDto>> GetDiscountsAsync(Guid? policyId, CancellationToken cancellationToken = default) => (await premiumRepository.GetDiscountsAsync(policyId, cancellationToken)).Select(discount => discount.ToDto()).ToList();
 
-    public Task<PremiumPlanDto> CreatePlanAsync(CreatePremiumPlanDto dto, CancellationToken cancellationToken = default) => CreateAsync(new PremiumPlan { PlanId = Guid.NewGuid(), PolicyTypeId = dto.PolicyTypeId, Frequency = dto.Frequency, BasePremium = dto.BasePremium }, entity => entity.ToDto(), cancellationToken);
+    public async Task<PremiumPlanDto> CreatePlanAsync(CreatePremiumPlanDto dto, CancellationToken cancellationToken = default)
+    {
+        var frequency = NormalizeFrequency(dto.Frequency);
+        if (await premiumRepository.GetPlanAsync(dto.PolicyTypeId, frequency, cancellationToken) is not null)
+        {
+            throw new InvalidOperationException("A premium plan already exists for the policy type and frequency.");
+        }
+
+        return await CreateAsync(new PremiumPlan { PlanId = Guid.NewGuid(), PolicyTypeId = dto.PolicyTypeId, Frequency = frequency, BasePremium = dto.BasePremium }, entity => entity.ToDto(), cancellationToken);
+    }
     public Task<PremiumScheduleDto> CreateScheduleAsync(CreatePremiumScheduleDto dto, CancellationToken cancellationToken = default) => CreateAsync(new PremiumSchedule { ScheduleId = Guid.NewGuid(), PolicyId = dto.PolicyId, DueDate = dto.DueDate, Amount = dto.Amount, Status = dto.Status }, entity => entity.ToDto(), cancellationToken);
     public Task<PremiumHistoryDto> CreateHistoryAsync(CreatePremiumHistoryDto dto, CancellationToken cancellationToken = default) => CreateAsync(new PremiumHistory { HistoryId = Guid.NewGuid(), PolicyId = dto.PolicyId, PaidDate = dto.PaidDate, Amount = dto.Amount }, entity => entity.ToDto(), cancellationToken);
     public Task<PremiumDiscountDto> CreateDiscountAsync(CreatePremiumDiscountDto dto, CancellationToken cancellationToken = default) => CreateAsync(new PremiumDiscount { DiscountId = Guid.NewGuid(), PolicyId = dto.PolicyId, DiscountType = dto.DiscountType, Percentage = dto.Percentage }, entity => entity.ToDto(), cancellationToken);
@@ -100,7 +109,14 @@ public class PremiumService(IPremiumRepository premiumRepository) : IPremiumServ
         return map(entity);
     }
 
-    private static string NormalizeFrequency(string frequency) => frequency.Trim();
+    private static string NormalizeFrequency(string frequency) => frequency.Trim().ToUpperInvariant() switch
+    {
+        "MONTHLY" => "Monthly",
+        "QUARTERLY" => "Quarterly",
+        "HALF-YEARLY" or "HALFYEARLY" => "HalfYearly",
+        "YEARLY" or "ANNUAL" or "ANNUALLY" => "Annual",
+        _ => throw new InvalidOperationException("Frequency must be Monthly, Quarterly, HalfYearly, or Annual.")
+    };
 
     private static int GetFrequencyIntervalMonths(string frequency) => NormalizeFrequency(frequency).ToUpperInvariant() switch
     {

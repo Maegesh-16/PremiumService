@@ -38,7 +38,11 @@ public class PremiumController(IPremiumService premiumService) : PremiumControll
     public Task<IReadOnlyList<PremiumPlanDto>> GetPlansAsync(CancellationToken cancellationToken) => premiumService.GetPlansAsync(cancellationToken);
     [HttpPost("plans")]
     [Authorize(Policy = PremiumServicePolicies.PremiumManage)]
-    public async Task<ActionResult<PremiumPlanDto>> CreatePlanAsync(CreatePremiumPlanDto dto, CancellationToken cancellationToken) => Ok(await premiumService.CreatePlanAsync(dto, cancellationToken));
+    public async Task<ActionResult<PremiumPlanDto>> CreatePlanAsync(CreatePremiumPlanDto dto, CancellationToken cancellationToken)
+    {
+        try { return Ok(await premiumService.CreatePlanAsync(dto, cancellationToken)); }
+        catch (InvalidOperationException exception) { return HandleInvalidOperation(exception); }
+    }
     [HttpGet("schedules")]
     public Task<IReadOnlyList<PremiumScheduleDto>> GetSchedulesAsync([FromQuery] Guid? policyId, CancellationToken cancellationToken) => premiumService.GetSchedulesAsync(policyId, cancellationToken);
     [HttpPost("schedules")]

@@ -12,7 +12,7 @@ public class PremiumPlanConfiguration : IEntityTypeConfiguration<PremiumPlan>
         builder.HasKey(plan => plan.PlanId);
         builder.Property(plan => plan.Frequency).HasMaxLength(30).IsRequired();
         builder.Property(plan => plan.BasePremium).HasPrecision(18, 2);
-        builder.HasIndex(plan => plan.PolicyTypeId);
+        builder.HasIndex(plan => new { plan.PolicyTypeId, plan.Frequency }).IsUnique();
     }
 }
 
