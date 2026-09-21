@@ -17,12 +17,7 @@ public class PremiumService(IPremiumRepository premiumRepository) : IPremiumServ
     public async Task<PremiumPlanDto> CreatePlanAsync(CreatePremiumPlanDto dto, CancellationToken cancellationToken = default)
     {
         var frequency = NormalizeFrequency(dto.Frequency);
-        if (await premiumRepository.GetPlanAsync(dto.PolicyTypeId, frequency, cancellationToken) is not null)
-        {
-            throw new InvalidOperationException("A premium plan already exists for the policy type and frequency.");
-        }
-
-        return await CreateAsync(new PremiumPlan { PlanId = Guid.NewGuid(), PolicyTypeId = dto.PolicyTypeId, Frequency = frequency, BasePremium = dto.BasePremium }, entity => entity.ToDto(), cancellationToken);
+        return await CreateAsync(new PremiumPlan { PlanId = Guid.NewGuid(), PolicyTypeId = dto.PolicyTypeId, Frequency = frequency, BasePremium = dto.BasePremium, CreatedAtUtc = DateTime.UtcNow }, entity => entity.ToDto(), cancellationToken);
     }
     public Task<PremiumScheduleDto> CreateScheduleAsync(CreatePremiumScheduleDto dto, CancellationToken cancellationToken = default) => CreateAsync(new PremiumSchedule { ScheduleId = Guid.NewGuid(), PolicyId = dto.PolicyId, DueDate = dto.DueDate, Amount = dto.Amount, Status = dto.Status }, entity => entity.ToDto(), cancellationToken);
     public Task<PremiumHistoryDto> CreateHistoryAsync(CreatePremiumHistoryDto dto, CancellationToken cancellationToken = default) => CreateAsync(new PremiumHistory { HistoryId = Guid.NewGuid(), PolicyId = dto.PolicyId, PaidDate = dto.PaidDate, Amount = dto.Amount }, entity => entity.ToDto(), cancellationToken);

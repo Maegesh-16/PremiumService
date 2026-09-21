@@ -6,4 +6,5 @@ public class PremiumPlan
     public Guid PolicyTypeId { get; set; }
     public string Frequency { get; set; } = string.Empty;
     public decimal BasePremium { get; set; }
+    public DateTime CreatedAtUtc { get; set; }
 }

@@ -20,7 +20,10 @@ public class PremiumRepository(PremiumDbContext context) : IPremiumRepository
         await FilterByPolicy(context.PremiumDiscounts, policyId).AsNoTracking().ToListAsync(cancellationToken);
 
     public Task<PremiumPlan?> GetPlanAsync(Guid policyTypeId, string frequency, CancellationToken cancellationToken = default) =>
-        context.PremiumPlans.AsNoTracking().SingleOrDefaultAsync(plan => plan.PolicyTypeId == policyTypeId && plan.Frequency == frequency, cancellationToken);
+        context.PremiumPlans.AsNoTracking()
+            .Where(plan => plan.PolicyTypeId == policyTypeId && plan.Frequency == frequency)
+            .OrderByDescending(plan => plan.CreatedAtUtc)
+            .FirstOrDefaultAsync(cancellationToken);
 
     public Task<PremiumSchedule?> GetScheduleForUpdateAsync(Guid scheduleId, CancellationToken cancellationToken = default) =>
         context.PremiumSchedules.SingleOrDefaultAsync(schedule => schedule.ScheduleId == scheduleId, cancellationToken);
